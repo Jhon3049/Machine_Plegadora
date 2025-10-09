@@ -53,7 +53,7 @@ cdg_data = nombre_acero[tipo_acero]
 
 # === Botón de ejecución ===
 if st.button("🔮 Predecir Valor Y (mm)"):
-    ruta_excel = Path(r"C:\Users\AUXILIAR DE INVENTAR\Desktop\Machine_Learning_TotalAgro\data_base.xlsx")
+    ruta_excel = Path(r"data_base.xlsx")
 
     if not ruta_excel.exists():
         st.error("❌ No se encontró el archivo de datos. Verifica la ruta del Excel.")
@@ -119,4 +119,5 @@ if st.button("🔮 Predecir Valor Y (mm)"):
             # === Resultados ===
             st.success(f"✅ Predicción del valor **Y**: {pred_y:.2f} mm")
             st.info(f"📊 Error medio absoluto (MAE): {mae:.3f}")
+
             st.info(f"📈 Coeficiente de determinación (R²): {r2:.3f}")
