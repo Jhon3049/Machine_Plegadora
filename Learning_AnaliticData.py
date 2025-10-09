@@ -44,7 +44,7 @@ st.header("📥 Parámetros de Entrada")
 
 angulo = st.number_input("Ángulo deseado (°)", min_value=0, max_value=110, step=1)
 longitud = st.number_input("Longitud de plegado (mm)", min_value=0.0, max_value=2500.0, step=1.0)
-radio = st.selectbox("Radio", list(radio_v_map.keys()))
+radio = st.selectbox("Radio o Apertura de Matriz (V)", list(radio_v_map.keys()))
 v = radio_v_map[radio]
 espesor_t = st.selectbox("Espesor de la lámina", list(calibre_milimetros.keys()))
 espesor = calibre_milimetros[espesor_t]
@@ -121,4 +121,5 @@ if st.button("🔮 Predecir Valor Y (mm)"):
             st.info(f"📊 Error medio absoluto (MAE): {mae:.3f}")
 
             st.info(f"📈 Coeficiente de determinación (R²): {r2:.3f}")
+
 
