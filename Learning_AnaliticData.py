@@ -22,10 +22,10 @@ calibre_milimetros = {
     "1.20mm | CAL 18": 1.20, "1.40mm | CAL 16": 1.40, "1.45mm | CAL 16": 1.45,
     "1.50mm | CAL 16": 1.50, "1.80mm | CAL 14": 1.80, "1.85mm | CAL 14": 1.85,
     "1.90mm | CAL 14": 1.90, "2.00mm | CAL 13": 2.00, "2.30mm | CAL -": 2.30,
-    "2.50mm | CAL 12": 2.50, "3.00mm | CAL 1/8in": 3.00, "4.00mm | CAL 8": 4.00,
-    "4.50mm | CAL 3/16in": 4.50, "4.75mm | CAL 3/16in": 4.75,
-    "6.00mm | CAL 1/4in": 6.00, "6.35mm | CAL 1/4in": 6.35,
-    "7.94mm | CAL 5/16in": 7.94, "8.00mm | CAL 5/16in": 8.00
+    "2.50mm | CAL 12": 2.50, "3.00mm | 1/8in": 3.00, "4.00mm | CAL 8": 4.00,
+    "4.50mm | CAL 3/16in": 4.50, "4.75mm | 3/16in": 4.75,
+    "6.00mm | CAL 1/4in": 6.00, "6.35mm | 1/4in": 6.35,
+    "7.94mm | CAL 5/16in": 7.94, "8.00mm | 5/16in": 8.00
 }
 
 nombre_acero = {
@@ -121,6 +121,7 @@ if st.button("🔮 Predecir Valor Y (mm)"):
             st.info(f"📊 Error medio absoluto (MAE): {mae:.3f}")
 
             st.info(f"📈 Coeficiente de determinación (R²): {r2:.3f}")
+
 
 
 
