@@ -80,7 +80,7 @@ if st.button("🔮 Predecir Valor Y (mm)"):
 
             # === Modelo ===
             modelo = RandomForestRegressor(
-                n_estimators=5000,  
+                n_estimators=1000,  
                 random_state=42,
                 n_jobs=-1  # Aprovecha todos los núcleos del CPU
             )
@@ -121,6 +121,7 @@ if st.button("🔮 Predecir Valor Y (mm)"):
             st.info(f"📊 Error medio absoluto (MAE): {mae:.3f}")
 
             st.info(f"📈 Coeficiente de determinación (R²): {r2:.3f}")
+
 
 
 
