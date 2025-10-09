@@ -12,8 +12,8 @@ from pathlib import Path
 
 # === Diccionarios Base ===
 radio_v_map = {
-    "1.0mm": 6, "1.3mm": 8, "2.0mm": 12, "2.7mm": 15,
-    "3.3mm": 20, "4.2mm": 26, "5.8mm": 37, "8.3mm": 50
+    "1.0mm | V6mm": 6, "1.3mm | V8mm": 8, "2.0mm | V12mm": 12, "2.7mm | V15mm": 15,
+    "3.3mm | V20mm": 20, "4.2mm | V26mm": 26, "5.8mm | V37mm": 37, "8.3mm | V50mm": 50
 }
 
 calibre_milimetros = {
@@ -121,3 +121,4 @@ if st.button("🔮 Predecir Valor Y (mm)"):
             st.info(f"📊 Error medio absoluto (MAE): {mae:.3f}")
 
             st.info(f"📈 Coeficiente de determinación (R²): {r2:.3f}")
+
