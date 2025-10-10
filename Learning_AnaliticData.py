@@ -77,7 +77,7 @@ cdg_data = nombre_acero[tipo_acero]
 
 # === Botón de ejecución ===
 if st.button("🔮 Predecir Valor Y (mm)"):
-    ruta_excel = Path(r"C:\Users\AUXILIAR DE INVENTAR\Desktop\Machine_Learning_TotalAgro\data_base.xlsx")
+    ruta_excel = Path(r"data_base.xlsx")
 
     if not ruta_excel.exists():
         st.error("❌ No se encontró el archivo de datos. Verifica la ruta del Excel.")
@@ -201,5 +201,6 @@ if st.button("🔮 Predecir Valor Y (mm)"):
                     <div class='metric-label'>Alineación de matriz</div>
                 </div>
                 """, unsafe_allow_html=True)
+
 
             st.markdown("---")
