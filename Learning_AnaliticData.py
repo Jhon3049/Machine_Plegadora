@@ -65,6 +65,10 @@ with tabs[0]:
     tipo_acero = st.selectbox("Tipo de acero", list(nombre_acero.keys()))
     cdg_data = nombre_acero[tipo_acero]
 
+    if angulo == 0 or longitud == 0:
+        st.warning("⚠️ Los valores no pueden ser cero. Ingresa valores válidos.")
+        st.stop()  # Detiene la ejecución del resto del código
+
     # === Cálculo del modelo ===
     if st.button("🔮 Predecir Valor Y (mm)"):
         st.session_state["mostrar_botones"] = True
@@ -240,3 +244,4 @@ with tabs[0]:
             st.success("💾 Corrección registrada exitosamente.")
             st.session_state["mostrar_botones"] = False
             st.session_state["accion"] = None
+
