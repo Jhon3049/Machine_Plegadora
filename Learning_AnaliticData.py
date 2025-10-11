@@ -10,6 +10,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_absolute_error, r2_score
 from pathlib import Path
 
+# === Ruta del archivo Excel ===
+ruta_excel = Path(r"data_base.xlsx")
 # === Diccionarios Base ===
 radio_v_map = {
     "1.0mm | V6mm": 6, "1.3mm | V8mm": 8, "2.0mm | V12mm": 12, "2.7mm | V15mm": 15,
@@ -35,173 +37,206 @@ nombre_acero = {
     "Acero inoxidable 304": 304
 }
 
-relacion_H_V={
-    6 : "5",
-    8 : "6", 
-    12 : "9", 
-    15 : "12",
-    20 : "15",
-    26 : "18", 
-    37 : "25",
-    50 : "36"
-}
+relacion_H_V = {6: "5", 8: "6", 12: "9", 15: "12", 20: "15", 26: "18", 37: "25", 50: "36"}
+alineacion_m = {6: "85.5", 8: "88", 12: "90.8", 15: "93", 20: "95.5", 26: "98.5", 37: "105.5", 50: "113"}
 
-alineacion_m={
-    6 : "85.5",
-    8 : "88", 
-    12 : "90.8", 
-    15 : "93",
-    20 : "95.5",
-    26 : "98.5", 
-    37 : "105.5",
-    50 : "113"
-}
-
-# === Título principal ===
+# === Título ===
 st.title("🧠 Sistema Predictivo de Ángulos para Plegadora CNC")
 st.write("Predice el valor de **Y (mm)** para el doblado de láminas según los parámetros seleccionados. Modelo basado en *Machine Learning (Random Forest)*.")
 
-# === Entradas de usuario ===
-st.header("📥 Parámetros de Entrada")
+tabs = st.tabs(["📐 Cálculo de Ángulo y Datos Técnicos", "⚙️ Ajuste de la Máquina"])
 
-angulo = st.number_input("Ángulo deseado (°)", min_value=0, max_value=110, step=1)
-longitud = st.number_input("Longitud de plegado (mm)", min_value=0.0, max_value=2500.0, step=1.0)
-radio = st.selectbox("Radio o Apertura de la matriz (V)", list(radio_v_map.keys()))
-v = radio_v_map[radio]
-h = relacion_H_V[v]
-ali = alineacion_m[v]
-espesor_t = st.selectbox("Espesor de la lámina", list(calibre_milimetros.keys()))
-espesor = calibre_milimetros[espesor_t]
-tipo_acero = st.selectbox("Tipo de acero", list(nombre_acero.keys()))
-cdg_data = nombre_acero[tipo_acero]
+# ============================================================
+# === TAB 1: CÁLCULO PRINCIPAL ===
+# ============================================================
+with tabs[0]:
+    st.header("📊 Cálculo Predictivo y Datos Técnicos")
+    st.header("📥 Parámetros de Entrada")
+    # === Entradas de usuario ===
 
-# === Botón de ejecución ===
-if st.button("🔮 Predecir Valor Y (mm)"):
-    ruta_excel = Path(r"data_base.xlsx")
+    angulo = st.number_input("Ángulo deseado (°)", min_value=0, max_value=110, step=1)
+    longitud = st.number_input("Longitud de plegado (mm)", min_value=0.0, max_value=2500.0, step=1.0)
+    radio = st.selectbox("Radio o Apertura de la matriz (V)", list(radio_v_map.keys()))
+    v = radio_v_map[radio]
+    h = relacion_H_V[v]
+    ali = alineacion_m[v]
+    espesor_t = st.selectbox("Espesor de la lámina", list(calibre_milimetros.keys()))
+    espesor = calibre_milimetros[espesor_t]
+    tipo_acero = st.selectbox("Tipo de acero", list(nombre_acero.keys()))
+    cdg_data = nombre_acero[tipo_acero]
 
-    if not ruta_excel.exists():
-        st.error("❌ No se encontró el archivo de datos. Verifica la ruta del Excel.")
-    else:
-        # === Cargar datos ===
-        data = pd.read_excel(ruta_excel)
+    # === Cálculo del modelo ===
+    if st.button("🔮 Predecir Valor Y (mm)"):
+        st.session_state["mostrar_botones"] = True
+        st.session_state["accion"] = None  # reset acción previa
 
-        # Verificación de columnas esperadas
-        columnas_necesarias = {"angulo", "v", "s", "l", "acero", "y"}
-        if not columnas_necesarias.issubset(data.columns):
-            st.error("⚠️ El archivo de Excel no contiene todas las columnas necesarias.")
+        if not ruta_excel.exists():
+            st.error("❌ No se encontró el archivo de datos.")
         else:
-            # === Preparación de datos ===
-            X = data[["angulo", "v", "s", "l", "acero"]]
-            y = data["y"]
+            data = pd.read_excel(ruta_excel)
 
-            columnas_num = ["angulo", "v", "s", "l"]
-            columnas_cat = ["acero"]
+            columnas_necesarias = {"angulo", "v", "s", "l", "acero", "y"}
+            if not columnas_necesarias.issubset(data.columns):
+                st.error("⚠️ Faltan columnas en el Excel.")
+            else:
+                # === Entrenamiento y predicción ===
+                X = data[["angulo", "v", "s", "l", "acero"]]
+                y = data["y"]
 
-            # === Preprocesamiento ===
-            preprocesador = ColumnTransformer([
-                ("cat", OneHotEncoder(handle_unknown="ignore"), columnas_cat)
-            ], remainder="passthrough")
+                preprocesador = ColumnTransformer([
+                    ("cat", OneHotEncoder(handle_unknown="ignore"), ["acero"])
+                ], remainder="passthrough")
 
-            # === Modelo ===
-            modelo = RandomForestRegressor(
-                n_estimators=1000,  
-                random_state=42,
-                n_jobs=-1  # Aprovecha todos los núcleos del CPU
-            )
+                modelo = RandomForestRegressor(
+                    n_estimators=1000, random_state=42, n_jobs=-1
+                )
 
-            # === Pipeline completo ===
-            pipeline = Pipeline([
-                ("preprocesamiento", preprocesador),
-                ("modelo", modelo)
-            ])
+                pipeline = Pipeline([
+                    ("preprocesamiento", preprocesador),
+                    ("modelo", modelo)
+                ])
 
-            # === División de datos ===
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=0.2, random_state=42
-            )
+                X_train, X_test, y_train, y_test = train_test_split(
+                    X, y, test_size=0.2, random_state=42
+                )
 
-            # === Entrenamiento ===
-            with st.spinner("Entrenando modelo... ⏳"):
-                pipeline.fit(X_train, y_train)
+                with st.spinner("Entrenando modelo... ⏳"):
+                    pipeline.fit(X_train, y_train)
 
-            # === Evaluación ===
-            pred_test = pipeline.predict(X_test)
-            mae = mean_absolute_error(y_test, pred_test)
-            r2 = r2_score(y_test, pred_test)
+                # === Evaluación ===
+                pred_test = pipeline.predict(X_test)
+                mae = mean_absolute_error(y_test, pred_test)
+                r2 = r2_score(y_test, pred_test)
 
-            # === Nueva predicción ===
-            nuevo = pd.DataFrame({
+                pred_y = pipeline.predict(pd.DataFrame({
+                    "angulo": [angulo],
+                    "v": [v],
+                    "s": [espesor],
+                    "l": [longitud],
+                    "acero": [cdg_data]
+                }))[0]
+
+                st.session_state["pred_y"] = pred_y
+                st.session_state["parametros"] = (angulo, v, espesor, longitud, cdg_data)
+
+                st.success(f"✅ Valor Y predicho: {pred_y:.2f} mm")
+                st.info(f"📊 Error medio absoluto (MAE): {mae:.3f}")
+                st.info(f"📈 Coeficiente de determinación (R²): {r2:.3f}")
+
+                # === Mostrar resultados técnicos ===
+                st.markdown("---")
+
+                st.subheader("📊 Resultados Técnicos del Plegado")
+
+                p=round((1.42*42*(espesor**2)*longitud)/(1000*v),2)
+
+                st.markdown(
+                    """
+                    <style>
+                    .metric-card {
+                        background-color: #f7f9fb;
+                        padding: 20px;
+                        border-radius: 15px;
+                        box-shadow: 0px 3px 8px rgba(0,0,0,0.1);
+                        text-align: center;
+                        font-family: 'Segoe UI';
+                    }
+                    .metric-value {
+                        font-size: 28px;
+                        font-weight: bold;
+                        color: #1E88E5;
+                    }
+                    .metric-label {
+                        font-size: 16px;
+                        color: #555;
+                    }
+                    </style>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+                # Colocar en tres columnas
+                col1, col2, col3 = st.columns(3)
+
+                with col3:
+                    st.markdown(f"""
+                    <div class='metric-card'>
+                        <div class='metric-value'>{h} mm</div>
+                        <div class='metric-label'>Longitud minima de pliegue (H)</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                with col2:
+                    st.markdown(f"""
+                    <div class='metric-card'>
+                        <div class='metric-value'>{p} Ton</div>
+                        <div class='metric-label'>Presión estimada (P)</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                with col1:
+                    st.markdown(f"""
+                    <div class='metric-card'>
+                        <div class='metric-value'>{ali} mm</div>
+                        <div class='metric-label'>Alineación de matriz</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+
+    # === Botones Confirmar / Corregir ===
+    if st.session_state.get("mostrar_botones"):
+        st.markdown("---")
+        st.subheader("⚙️ ¿Deseas registrar este resultado?")
+
+        colA, colB = st.columns(2)
+        if colA.button("✅ Confirmar resultado correcto"):
+            st.session_state["accion"] = "confirmar"
+        if colB.button("🔧 Corregir y registrar nuevo valor"):
+            st.session_state["accion"] = "corregir"
+
+    # === Acción de Confirmar ===
+    if st.session_state.get("accion") == "confirmar":
+        angulo, v, espesor, longitud, cdg_data = st.session_state["parametros"]
+        pred_y = st.session_state["pred_y"]
+
+        nuevo_dato = pd.DataFrame({
+            "angulo": [angulo],
+            "v": [v],
+            "s": [espesor],
+            "l": [longitud],
+            "acero": [cdg_data],
+            "y": [pred_y]
+        })
+
+        data = pd.read_excel(ruta_excel)
+        data = pd.concat([data, nuevo_dato], ignore_index=True)
+        data.to_excel(ruta_excel, index=False)
+
+        st.success("✅ Resultado confirmado y guardado en la base de datos.")
+        st.session_state["mostrar_botones"] = False
+        st.session_state["accion"] = None
+
+    # === Acción de Corregir ===
+    if st.session_state.get("accion") == "corregir":
+        st.warning("✏️ Ingrese el valor real medido de Y (mm):")
+        nuevo_y = st.number_input("Valor real medido (Y)", min_value=0.0, max_value=200.0, step=0.1)
+
+        if st.button("💾 Guardar corrección"):
+            angulo, v, espesor, longitud, cdg_data = st.session_state["parametros"]
+
+            nuevo_dato_corr = pd.DataFrame({
                 "angulo": [angulo],
                 "v": [v],
                 "s": [espesor],
                 "l": [longitud],
-                "acero": [cdg_data]
+                "acero": [cdg_data],
+                "y": [nuevo_y]
             })
 
-            pred_y = pipeline.predict(nuevo)[0]
+            data = pd.read_excel(ruta_excel)
+            data = pd.concat([data, nuevo_dato_corr], ignore_index=True)
+            data.to_excel(ruta_excel, index=False)
 
-            # === Resultados ===
-            st.success(f"✅ Predicción del valor **Y**: {pred_y:.2f} mm")
-            st.info(f"📊 Error medio absoluto (MAE): {mae:.3f}")
-            st.info(f"📈 Coeficiente de determinación (R²): {r2:.3f}")
-
-            st.markdown("---")
-            st.subheader("📊 Resultados Técnicos del Plegado")
-
-            p=round((1.42*42*(espesor**2)*longitud)/(1000*v),2)
-
-            st.markdown(
-                """
-                <style>
-                .metric-card {
-                    background-color: #f7f9fb;
-                    padding: 20px;
-                    border-radius: 15px;
-                    box-shadow: 0px 3px 8px rgba(0,0,0,0.1);
-                    text-align: center;
-                    font-family: 'Segoe UI';
-                }
-                .metric-value {
-                    font-size: 28px;
-                    font-weight: bold;
-                    color: #1E88E5;
-                }
-                .metric-label {
-                    font-size: 16px;
-                    color: #555;
-                }
-                </style>
-                """,
-                unsafe_allow_html=True
-            )
-
-            # Colocar en tres columnas
-            col1, col2, col3 = st.columns(3)
-
-            with col3:
-                st.markdown(f"""
-                <div class='metric-card'>
-                    <div class='metric-value'>{h} mm</div>
-                    <div class='metric-label'>Longitud minima de pliegue (H)</div>
-                </div>
-                """, unsafe_allow_html=True)
-
-            with col2:
-                st.markdown(f"""
-                <div class='metric-card'>
-                    <div class='metric-value'>{p} Ton</div>
-                    <div class='metric-label'>Presión estimada (P)</div>
-                </div>
-                """, unsafe_allow_html=True)
-
-            with col1:
-                st.markdown(f"""
-                <div class='metric-card'>
-                    <div class='metric-value'>{ali} mm</div>
-                    <div class='metric-label'>Alineación de matriz</div>
-                </div>
-                """, unsafe_allow_html=True)
-
-
-            st.markdown("---")
-
+            st.success("💾 Corrección registrada exitosamente.")
+            st.session_state["mostrar_botones"] = False
+            st.session_state["accion"] = None
