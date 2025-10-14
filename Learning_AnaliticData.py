@@ -220,23 +220,23 @@ with tabs[0]:
         st.session_state["mostrar_botones"] = False
         st.session_state["accion"] = None
 
-    # === Acción de Corregir ===
+       # === Acción de Corregir ===
     if st.session_state.get("accion") == "corregir":
-        st.warning("✏️ Ingrese el valor real medido de Y (mm):")
-        nuevo_y = st.number_input("Valor real medido (Y)", min_value=0.0, max_value=200.0, step=0.1)
+        st.warning("✏️ Ingrese el valor real medido del angulo(°):")
+        nuevo_angulo = st.number_input("Valor real del angulo(°)", min_value=0, max_value=110, step=1)
 
         if st.button("💾 Guardar corrección"):
-            angulo, v, espesor, longitud, cdg_data = st.session_state["parametros"]
+            v, espesor, longitud, cdg_data, pred_y = st.session_state["parametros"]
 
             nuevo_dato_corr = pd.DataFrame({
-                "angulo": [angulo],
+                "angulo": [nuevo_angulo],
                 "v": [v],
                 "s": [espesor],
                 "l": [longitud],
                 "acero": [cdg_data],
-                "y": [nuevo_y]
+                "y": [pred_y]
             })
-
+            
             data = pd.read_excel(ruta_excel)
             data = pd.concat([data, nuevo_dato_corr], ignore_index=True)
             data.to_excel(ruta_excel, index=False)
@@ -244,4 +244,5 @@ with tabs[0]:
             st.success("💾 Corrección registrada exitosamente.")
             st.session_state["mostrar_botones"] = False
             st.session_state["accion"] = None
+
 
