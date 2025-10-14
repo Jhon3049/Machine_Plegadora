@@ -220,29 +220,53 @@ with tabs[0]:
         st.session_state["mostrar_botones"] = False
         st.session_state["accion"] = None
 
-       # === Acción de Corregir ===
+    # === Acción de Corregir ===
     if st.session_state.get("accion") == "corregir":
-        st.warning("✏️ Ingrese el valor real medido del angulo(°):")
-        nuevo_angulo = st.number_input("Valor real del angulo(°)", min_value=0, max_value=110, step=1)
+        st.warning("✏️ Ingrese el valor real medido del ángulo (°):")
 
-        if st.button("💾 Guardar corrección"):
-            v, espesor, longitud, cdg_data, pred_y = st.session_state["parametros"]
+        # Entrada del ángulo real (no permite 0)
+        nuevo_angulo = st.number_input(
+            "Valor real del ángulo (°)", 
+            min_value=1, max_value=110, step=1, 
+            key="angulo_real_input"
+        )
 
-            nuevo_dato_corr = pd.DataFrame({
-                "angulo": [nuevo_angulo],
-                "v": [v],
-                "s": [espesor],
-                "l": [longitud],
-                "acero": [cdg_data],
-                "y": [pred_y]
-            })
-            
-            data = pd.read_excel(ruta_excel)
-            data = pd.concat([data, nuevo_dato_corr], ignore_index=True)
-            data.to_excel(ruta_excel, index=False)
+        # Confirmación para guardar
+        guardar_correccion = st.button("💾 Guardar corrección", key="guardar_corr")
 
-            st.success("💾 Corrección registrada exitosamente.")
-            st.session_state["mostrar_botones"] = False
-            st.session_state["accion"] = None
+        if guardar_correccion:
+            try:
+                # Recuperar los parámetros guardados previamente
+                if "parametros" in st.session_state:
+                    angulo, v, espesor, longitud, cdg_data = st.session_state["parametros"]
+                    pred_y = st.session_state["pred_y"]
+                else:
+                    st.error("❌ No se encontraron los parámetros previos. Calcula de nuevo el valor Y.")
+                    st.stop()
 
+                # Crear nuevo registro con el ángulo corregido
+                nuevo_dato_corr = pd.DataFrame({
+                    "angulo": [nuevo_angulo],   # ← Ángulo real medido
+                    "v": [v],
+                    "s": [espesor],
+                    "l": [longitud],
+                    "acero": [cdg_data],
+                    "y": [pred_y]               # ← Y predicho original (para referencia)
+                })
+
+                # Cargar y actualizar el Excel
+                data = pd.read_excel(ruta_excel)
+                data = pd.concat([data, nuevo_dato_corr], ignore_index=True)
+                data.to_excel(ruta_excel, index=False)
+
+                # Mostrar confirmación visual
+                st.success("✅ Corrección registrada exitosamente en la base de datos.")
+                st.dataframe(nuevo_dato_corr)
+
+                # Resetear botones y estados
+                st.session_state["mostrar_botones"] = False
+                st.session_state["accion"] = None
+
+            except Exception as e:
+                st.error(f"⚠️ Error al guardar la corrección: {e}")
 
