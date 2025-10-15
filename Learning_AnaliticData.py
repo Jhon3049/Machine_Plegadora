@@ -112,13 +112,13 @@ with tabs[0]:
                 mae = mean_absolute_error(y_test, pred_test)
                 r2 = r2_score(y_test, pred_test)
 
-                pred_y = pipeline.predict(pd.DataFrame({
+                pred_y = round(pipeline.predict(pd.DataFrame({
                     "angulo": [angulo],
                     "v": [v],
                     "s": [espesor],
                     "l": [longitud],
                     "acero": [cdg_data]
-                }))[0]
+                }))[0], 2)
 
                 st.session_state["pred_y"] = pred_y
                 st.session_state["parametros"] = (angulo, v, espesor, longitud, cdg_data)
@@ -269,4 +269,5 @@ with tabs[0]:
 
             except Exception as e:
                 st.error(f"⚠️ Error al guardar la corrección: {e}")
+
 
