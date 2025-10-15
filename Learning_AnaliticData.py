@@ -1,7 +1,9 @@
 # === Interfaz y Machine Learning Predictivo ===
+import base64
+import requests
+from io import BytesIO
 import streamlit as st
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -10,8 +12,14 @@ from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_absolute_error, r2_score
 from pathlib import Path
 
+GITHUB_TOKEN = "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"
+GITHUB_REPO = "Jhon3049/Machine_Plegadora"
+RUTA_EXCEL_REPO = "data_base.xlsx"  # ruta dentro del repo
+BRANCH = "main"
+
 # === Ruta del archivo Excel ===
 ruta_excel = Path(r"data_base.xlsx")
+
 # === Diccionarios Base ===
 radio_v_map = {
     "1.0mm | V6mm": 6, "1.3mm | V8mm": 8, "2.0mm | V12mm": 12, "2.7mm | V15mm": 15,
@@ -39,6 +47,54 @@ nombre_acero = {
 
 relacion_H_V = {6: "5", 8: "6", 12: "9", 15: "12", 20: "15", 26: "18", 37: "25", 50: "36"}
 alineacion_m = {6: "85.5", 8: "88", 12: "90.8", 15: "93", 20: "95.5", 26: "98.5", 37: "105.5", 50: "113"}
+
+def obtener_excel_desde_github():
+    """Descarga el Excel actual desde el repositorio de GitHub."""
+    url = f"https://raw.githubusercontent.com/{GITHUB_REPO}/{BRANCH}/{RUTA_EXCEL_REPO}"
+    try:
+        data = pd.read_excel(url)
+        return data
+    except Exception as e:
+        st.error(f"⚠️ Error al leer el archivo desde GitHub: {e}")
+        return pd.DataFrame()  # DataFrame vacío si falla
+
+
+def subir_excel_a_github(df):
+    """Sube el archivo Excel actualizado directamente al repositorio GitHub."""
+    try:
+        # Convertir el DataFrame a bytes Excel
+        buffer = BytesIO()
+        df.to_excel(buffer, index=False)
+        content = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+        # Obtener SHA del archivo actual
+        url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{RUTA_EXCEL_REPO}"
+        headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            sha = response.json()["sha"]
+        else:
+            sha = None
+
+        # Crear/actualizar archivo
+        data = {
+            "message": "Actualización automática desde Streamlit",
+            "content": content,
+            "branch": BRANCH
+        }
+        if sha:
+            data["sha"] = sha
+
+        put_response = requests.put(url, headers=headers, json=data)
+
+        if put_response.status_code in [200, 201]:
+            st.success("☁️ Archivo actualizado correctamente en GitHub.")
+        else:
+            st.error(f"❌ Error al subir archivo a GitHub: {put_response.json()}")
+
+    except Exception as e:
+        st.error(f"⚠️ Error durante la subida a GitHub: {e}")
 
 # === Título ===
 st.title("🧠 Sistema Predictivo de Ángulos para Plegadora CNC")
@@ -186,7 +242,6 @@ with tabs[0]:
                     </div>
                     """, unsafe_allow_html=True)
 
-
     # === Botones Confirmar / Corregir ===
     if st.session_state.get("mostrar_botones"):
         st.markdown("---")
@@ -198,7 +253,7 @@ with tabs[0]:
         if colB.button("🔧 Corregir y registrar nuevo valor"):
             st.session_state["accion"] = "corregir"
 
-    # === Acción de Confirmar ===
+    # === ACCIÓN DE CONFIRMAR ===
     if st.session_state.get("accion") == "confirmar":
         angulo, v, espesor, longitud, cdg_data = st.session_state["parametros"]
         pred_y = st.session_state["pred_y"]
@@ -212,31 +267,32 @@ with tabs[0]:
             "y": [pred_y]
         })
 
-        data = pd.read_excel(ruta_excel)
+        # Cargar y actualizar directamente desde GitHub
+        data = obtener_excel_desde_github()
         data = pd.concat([data, nuevo_dato], ignore_index=True)
-        data.to_excel(ruta_excel, index=False)
 
-        st.success("✅ Resultado confirmado y guardado en la base de datos.")
+        # Subir al repositorio
+        subir_excel_a_github(data)
+
+        st.success("✅ Resultado confirmado y guardado en GitHub.")
         st.session_state["mostrar_botones"] = False
         st.session_state["accion"] = None
 
-    # === Acción de Corregir ===
+    # === ACCIÓN DE CORREGIR ===
     if st.session_state.get("accion") == "corregir":
         st.warning("✏️ Ingrese el valor real medido del ángulo (°):")
 
-        # Entrada del ángulo real (no permite 0)
         nuevo_angulo = st.number_input(
-            "Valor real del ángulo (°)", 
-            min_value=1, max_value=110, step=1, 
+            "Valor real del ángulo (°)",
+            min_value=1, max_value=110, step=1,
             key="angulo_real_input"
         )
 
-        # Confirmación para guardar
         guardar_correccion = st.button("💾 Guardar corrección", key="guardar_corr")
 
         if guardar_correccion:
             try:
-                # Recuperar los parámetros guardados previamente
+                # Recuperar parámetros previos
                 if "parametros" in st.session_state:
                     angulo, v, espesor, longitud, cdg_data = st.session_state["parametros"]
                     pred_y = st.session_state["pred_y"]
@@ -244,26 +300,25 @@ with tabs[0]:
                     st.error("❌ No se encontraron los parámetros previos. Calcula de nuevo el valor Y.")
                     st.stop()
 
-                # Crear nuevo registro con el ángulo corregido
+                # Crear nuevo registro
                 nuevo_dato_corr = pd.DataFrame({
-                    "angulo": [nuevo_angulo],   # ← Ángulo real medido
+                    "angulo": [nuevo_angulo],
                     "v": [v],
                     "s": [espesor],
                     "l": [longitud],
                     "acero": [cdg_data],
-                    "y": [pred_y]               # ← Y predicho original (para referencia)
+                    "y": [pred_y]
                 })
 
-                # Cargar y actualizar el Excel
-                data = pd.read_excel(ruta_excel)
+                # Leer, concatenar y subir
+                data = obtener_excel_desde_github()
                 data = pd.concat([data, nuevo_dato_corr], ignore_index=True)
-                data.to_excel(ruta_excel, index=False)
+                subir_excel_a_github(data)
 
-                # Mostrar confirmación visual
-                st.success("✅ Corrección registrada exitosamente en la base de datos.")
+                # Confirmación visual
+                st.success("✅ Corrección registrada y actualizada en GitHub.")
                 st.dataframe(nuevo_dato_corr)
 
-                # Resetear botones y estados
                 st.session_state["mostrar_botones"] = False
                 st.session_state["accion"] = None
 
@@ -271,3 +326,6 @@ with tabs[0]:
                 st.error(f"⚠️ Error al guardar la corrección: {e}")
 
 
+with tabs[1]:
+    st.title("Aju")
+    st.write("Predice el valor de **Y (mm)** para el doblado de láminas según los parámetros seleccionados. Modelo basado en *Machine Learning (Random Forest)*.")
