@@ -104,6 +104,194 @@ st.write("Predice el valor de **Y (mm)** para el doblado de láminas según los 
 tabs = st.tabs(["📐 Cálculo de Ángulo y Datos Técnicos", "⚙️ Ajuste de la Máquina"])
 
 # ============================================================
+# === TAB 2: AJUSTE ===
+# ============================================================
+with tabs[1]:
+    st.header("⚙️ Ajuste de Punzones")
+
+    st.info("""
+    **Condiciones estándar de calibración:**
+    - Probeta: 50 mm × 100 mm  
+    - Material: **COLD ROLLED CAL 14**  
+    - Dado: **V = 26**  
+    - Punzón: **200 mm**  
+    - Ángulo objetivo: **90°**  
+    - Valor de referencia: **Y = 92.70 mm**
+    """)
+
+    st.caption("La calibración se realiza con las probetas de 50mm*100mm COLD ROLLED de CAL14, Con el dado V=26, Con el Punzon de 200 mm. SE DEBE LLEVAR A 90° EN Y= 92.70mm")
+
+    st.markdown("---")
+
+    st.subheader("📏 Valores de Alineación de la Matriz")
+
+    st.markdown("""
+    <style>
+    .table-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    }
+
+    .pretty-table {
+    border-collapse: collapse;
+    width: 65%;
+    background-color: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: "Segoe UI", sans-serif;
+    animation: fadeIn 0.6s ease-in-out;
+    }
+
+    .pretty-table th {
+    background: linear-gradient(90deg, #1E88E5, #42A5F5);
+    color: white;
+    text-align: center;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    }
+
+    .pretty-table td {
+    text-align: center;
+    padding: 10px;
+    font-size: 15px;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+    }
+
+    .pretty-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+    }
+
+    .pretty-table tr:hover {
+    background-color: #e3f2fd;
+    transform: scale(1.01);
+    transition: all 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+    }
+    </style>
+
+    <div class="table-container">
+    <table class="pretty-table">
+        <tr>
+        <th>V (mm)</th>
+        <th>Valores en Y (mm)</th>
+        </tr>
+        <tr><td>6</td><td>85.5</td></tr>
+        <tr><td>8</td><td>88.0</td></tr>
+        <tr><td>12</td><td>90.8</td></tr>
+        <tr><td>15</td><td>93.0</td></tr>
+        <tr><td>20</td><td>95.5</td></tr>
+        <tr><td>26</td><td>98.5</td></tr>
+        <tr><td>37</td><td>105.5</td></tr>
+        <tr><td>50</td><td>113.0</td></tr>
+    </table>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("### ⚙️ Valores Avanzados de la Máquina")
+st.caption("Parámetros de configuración y calibración del controlador **E21 ESTUN**.")
+
+st.divider()
+
+# ======================================================
+# 🧭 SECCIÓN CONST
+# ======================================================
+st.subheader("🔩 CONST — Configuración Base")
+st.info("""
+**Parámetros actuales:**
+- Unidad de medida: **mm**  (`0 = mm`, `1 = inch`)
+- Idioma: **English**  (`1 = English`, `0 = 中文`)
+- Tiempo de liberación (*Release Time*): **0.30 s**
+- Tiempo de pulso (*Pulse Time*): **0.200 s**
+- Versión de firmware: **V1.17**
+""")
+st.caption("Estos valores corresponden a la pantalla de configuración *CONST* del controlador **E21 ESTUN**.")
+
+st.divider()
+
+# ======================================================
+# ⚙️ SYSTEM PARA
+# ======================================================
+st.subheader("🧠 SYSTEM PARA — Parámetros del Sistema")
+st.info("""
+**Configuración actual:**
+- X-Digits: **1**
+- Y-Digits: **2**
+- X-Safe: **10.0**
+- Y-Safe: **5.0**
+- Step Delay: **0.50 s**
+- Count Select: **0**
+- LDP Enable: **0**
+- Trans. Select: **0**
+""")
+st.caption("Estos valores pertenecen al menú *SYSTEM PARA* del controlador **E21 ESTUN**.")
+st.divider()
+
+# ======================================================
+# 🔧 X AXIS PARA
+# ======================================================
+st.subheader("🛠️ X AXIS PARA — Parámetros del Eje X")
+st.info("""
+**Configuración actual:**
+- X_Enable: **1**
+- Encoder Dir: **0**
+- Teach. En: **1**
+- Ref. Pos: **500.0**
+- X-Min: **10.0**
+- X-Max: **500.0**
+- MF: **1500**
+- DF: **10**
+- Stop Dis.: **1.0**
+- Tolerance: **0.200**
+- Overrun En.: **1**
+- Over. Dis.: **1.0**
+- Repeat Enable: **1**
+- Repeat Time: **0.50**
+- Mute Dis.: **10.0**
+- Stop Time: **0.50**
+- OT Time: **0.50**
+- Drive Mode: **1**
+- High Freq.: **100%**
+- Low Freq.: **10%**
+""")
+st.caption("Estos valores pertenecen al menú *X AXIS PARA* del controlador **E21 ESTUN**.")
+st.divider()
+
+st.subheader("🛠️ Y AXIS PARA — Parámetros del Eje Y")
+st.info("""
+**Configuración actual:**
+- X_Enable: **1**
+- Encoder Dir: **1**
+- Teach. En: **1**
+- Ref. Pos: **150.0**
+- X-Min: **60.0**
+- X-Max: **150.0**
+- MF: **4105**
+- DF: **10**
+- Stop Dis.: **1.0**
+- Tolerance: **0.020**
+- Overrun En.: **1**
+- Over. Dis.: **0.10**
+- Repeat Enable: **1**
+- Repeat Time: **0.50**
+- Mute Dis.: **2.0**
+- Stop Time: **0.50**
+- OT Time: **0.50**
+- Drive Mode: **1**
+- High Freq.: **100%**
+- Low Freq.: **10%**
+""")
+st.caption("Estos valores pertenecen al menú *Y AXIS PARA* del controlador **E21 ESTUN**.")
+st.divider()
+
+# ============================================================
 # === TAB 1: CÁLCULO PRINCIPAL ===
 # ============================================================
 with tabs[0]:
@@ -306,12 +494,5 @@ with tabs[0]:
 
             except Exception as e:
                 st.error(f"⚠️ Error al guardar la corrección: {e}")
-
-
-with tabs[1]:
-    st.title("Aju")
-    st.write("Predice el valor de **Y (mm)** para el doblado de láminas según los parámetros seleccionados. Modelo basado en *Machine Learning (Random Forest)*.")
-
-
 
 
