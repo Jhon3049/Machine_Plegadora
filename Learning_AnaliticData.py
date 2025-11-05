@@ -1,4 +1,5 @@
 # === Interfaz y Machine Learning Predictivo ===
+import os
 import base64
 import requests
 from io import BytesIO
@@ -329,5 +330,6 @@ with tabs[0]:
 with tabs[1]:
     st.title("Aju")
     st.write("Predice el valor de **Y (mm)** para el doblado de láminas según los parámetros seleccionados. Modelo basado en *Machine Learning (Random Forest)*.")
+
 
 
