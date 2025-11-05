@@ -12,7 +12,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_absolute_error, r2_score
 from pathlib import Path
 
-GITHUB_TOKEN = "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" # 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
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_REPO = "Jhon3049/Machine_Plegadora"
 RUTA_EXCEL_REPO = "data_base.xlsx"  # ruta dentro del repo
 BRANCH = "main"
@@ -329,4 +329,5 @@ with tabs[0]:
 with tabs[1]:
     st.title("Aju")
     st.write("Predice el valor de **Y (mm)** para el doblado de láminas según los parámetros seleccionados. Modelo basado en *Machine Learning (Random Forest)*.")
+
 
