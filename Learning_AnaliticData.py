@@ -251,42 +251,23 @@ with tabs[0]:
         colA, colB = st.columns(2)
         if colA.button("✅ Confirmar resultado correcto"):
             st.session_state["accion"] = "confirmar"
-        if colB.button("🔧 Corregir y registrar nuevo valor"):
+        if colB.button("🔧 Corregir y registrar nuevos valores"):
             st.session_state["accion"] = "corregir"
-
-    # === ACCIÓN DE CONFIRMAR ===
-    if st.session_state.get("accion") == "confirmar":
-        angulo, v, espesor, longitud, cdg_data = st.session_state["parametros"]
-        pred_y = st.session_state["pred_y"]
-
-        nuevo_dato = pd.DataFrame({
-            "angulo": [angulo],
-            "v": [v],
-            "s": [espesor],
-            "l": [longitud],
-            "acero": [cdg_data],
-            "y": [pred_y]
-        })
-
-        # Cargar y actualizar directamente desde GitHub
-        data = obtener_excel_desde_github()
-        data = pd.concat([data, nuevo_dato], ignore_index=True)
-
-        # Subir al repositorio
-        subir_excel_a_github(data)
-
-        st.success("✅ Resultado confirmado y guardado en GitHub.")
-        st.session_state["mostrar_botones"] = False
-        st.session_state["accion"] = None
 
     # === ACCIÓN DE CORREGIR ===
     if st.session_state.get("accion") == "corregir":
-        st.warning("✏️ Ingrese el valor real medido del ángulo (°):")
+        st.warning("✏️ Ingrese los valores reales medidos del ángulo (°) y de Y (mm):")
 
         nuevo_angulo = st.number_input(
             "Valor real del ángulo (°)",
             min_value=1, max_value=110, step=1,
             key="angulo_real_input"
+        )
+
+        nuevo_y = st.number_input(
+            "Valor real de Y (mm)",
+            min_value=0.00, max_value=200.00, step=0.01,
+            key="y_real_input"
         )
 
         guardar_correccion = st.button("💾 Guardar corrección", key="guardar_corr")
@@ -308,7 +289,7 @@ with tabs[0]:
                     "s": [espesor],
                     "l": [longitud],
                     "acero": [cdg_data],
-                    "y": [pred_y]
+                    "y": [nuevo_y]
                 })
 
                 # Leer, concatenar y subir
@@ -330,6 +311,7 @@ with tabs[0]:
 with tabs[1]:
     st.title("Aju")
     st.write("Predice el valor de **Y (mm)** para el doblado de láminas según los parámetros seleccionados. Modelo basado en *Machine Learning (Random Forest)*.")
+
 
 
 
