@@ -716,7 +716,7 @@ def main():
         with st.expander("🧠 SYSTEM PARA - Parámetros del Sistema", expanded=False):
             df_system = pd.DataFrame({
                 "Parámetro": ["X-Digits", "Y-Digits", "X-Safe", "Y-Safe", "Step Delay", "Count Select", "LDP Enable", "Trans. Select"],
-                "Valor": ["1", "2", "10.0", "5.0", "0.50 s", "0", "0", "0"]
+                "Valor": ["2", "2", "10.0", "80.0", "0.50 s", "0", "0", "0"]
             })
             st.dataframe(df_system, use_container_width=True, hide_index=True)
         
@@ -727,7 +727,7 @@ def main():
                              "Repeat Enable", "Repeat Time", "Mute Dis.", "Stop Time", "OT Time",
                              "Drive Mode", "High Freq.", "Low Freq."],
                 "Valor": ["1", "0", "1", "500.0", "10.0", "500.0",
-                         "1500", "10", "1.0", "0.200", "1", "1.0",
+                         "1440", "10", "1.0", "0.100", "1", "1.0",
                          "1", "0.50", "10.0", "0.50", "0.50",
                          "1", "100%", "10%"]
             })
@@ -739,7 +739,7 @@ def main():
                              "MF", "DF", "Stop Dis.", "Tolerance", "Overrun En.", "Over. Dis.",
                              "Repeat Enable", "Repeat Time", "Mute Dis.", "Stop Time", "OT Time",
                              "Drive Mode", "High Freq.", "Low Freq."],
-                "Valor": ["1", "1", "1", "150.0", "60.0", "150.0",
+                "Valor": ["1", "1", "1", "80.0", "80.0", "150.0",
                          "4105", "10", "1.0", "0.020", "1", "0.10",
                          "1", "0.50", "2.0", "0.50", "0.50",
                          "1", "100%", "10%"]
@@ -781,3 +781,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
